@@ -1,10 +1,5 @@
 {
     "require": {
         "php": ">=8.0"
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "chmod +x vendor/bin/heroku-php-apache2"
-        ]
     }
 }
