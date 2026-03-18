@@ -7,13 +7,14 @@ $data = json_decode(file_get_contents("php://input"));
 
 if(!empty($data->email) && !empty($data->password) && !empty($data->name)) {
     
+    // Hashing the password (SECURITY: Correct!)
     $hashedPassword = password_hash($data->password, PASSWORD_DEFAULT);
     
     $role = !empty($data->role) ? $data->role : 'tenant';
     $contact = !empty($data->contact) ? $data->contact : '';
 
-    // Siniguro nating match ito sa columns ng Clever Cloud database mo
-    $sql = "INSERT INTO users (name, email, password, role, contact) VALUES (?, ?, ?, ?, ?)";
+    // INAYOS: Ginamit ang 'full_name' para match sa database mo kanina
+    $sql = "INSERT INTO users (full_name, email, password, role, contact) VALUES (?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
 
     try {
@@ -32,7 +33,6 @@ if(!empty($data->email) && !empty($data->password) && !empty($data->name)) {
             ]
         ]);
     } catch(Exception $e) {
-        // Mas malinaw na error message para alam natin kung bakit nag-fail
         echo json_encode([
             "success" => false, 
             "message" => "Registration failed: " . $e->getMessage()
