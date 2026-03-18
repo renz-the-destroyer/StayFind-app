@@ -264,7 +264,6 @@
         e.preventDefault();
         const btn = document.getElementById('signUpBtn');
         
-        // COLLECT DATA INCLUDING ROLE
         signUpData = {
             name: document.getElementById('regName').value,
             email: document.getElementById('regEmail').value,
@@ -300,7 +299,7 @@
             });
     });
 
-    // 2. VERIFY OTP & SAVE TO DATABASE
+    // 2. VERIFY OTP & REDIRECT TO DASHBOARD
     document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
         const userOtp = document.getElementById('otpInput').value;
         const btn = document.getElementById('verifyOtpBtn');
@@ -310,7 +309,6 @@
             btn.innerHTML = '<div class="spinner"></div> Creating Account...';
 
             try {
-                // If you move PHP files to an /api folder, change this to 'api/register.php'
                 const response = await fetch('register.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -321,7 +319,8 @@
                 if (result.success) {
                     localStorage.setItem('user', JSON.stringify(result.user));
                     Swal.fire('Success!', 'Account created.', 'success').then(() => {
-                        window.location.href = "home.html";
+                        // Inayos: Lipat sa dashboard.html
+                        window.location.href = "dashboard.html";
                     });
                 } else {
                     throw new Error(result.message);
@@ -336,7 +335,7 @@
         }
     });
 
-    // 3. SIGN IN
+    // 3. SIGN IN & REDIRECT TO DASHBOARD
     document.getElementById('signInForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('signInBtn');
@@ -347,17 +346,24 @@
         btn.innerHTML = '<div class="spinner"></div> Authenticating...';
 
         try {
-            // If you move PHP files to an /api folder, change this to 'api/login.php'
             const response = await fetch('login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
+            
+            // Check if response is okay
+            if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error("Server error: " + errText);
+            }
+
             const result = await response.json();
 
             if (result.success) {
                 localStorage.setItem('user', JSON.stringify(result.user));
-                window.location.href = "home.html";
+                // Inayos: Lipat sa dashboard.html
+                window.location.href = "dashboard.html";
             } else {
                 throw new Error(result.message);
             }
