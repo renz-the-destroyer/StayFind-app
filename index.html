@@ -69,7 +69,7 @@
         text-align: center;
     }
 
-    input, select {
+    input {
         background-color: #e3f2fd;
         border: none;
         padding: 12px 15px;
@@ -189,15 +189,9 @@
             <form id="signUpForm">
                 <h1>Create Account</h1>
                 <span>Register with your email</span>
-                <input type="text" id="regName" placeholder="Name" required />
+                <input type="text" id="regName" placeholder="Full Name" required />
                 <input type="email" id="regEmail" placeholder="Email" required />
                 
-                <select id="regRole" required>
-                    <option value="" disabled selected>Select Your Role</option>
-                    <option value="tenant">I am a Tenant (Looking for a room)</option>
-                    <option value="landlord">I am a Landlord (Posting a room)</option>
-                </select>
-
                 <div class="password-wrapper">
                     <input type="password" id="regPassword" placeholder="Password (min 8 chars)" required />
                     <i class="fas fa-eye toggle-password" data-target="regPassword"></i>
@@ -268,7 +262,7 @@
             name: document.getElementById('regName').value,
             email: document.getElementById('regEmail').value,
             password: document.getElementById('regPassword').value,
-            role: document.getElementById('regRole').value
+            role: 'pending' // DEFAULT ROLE IS NOW PENDING
         };
 
         if (signUpData.password.length < 8) {
@@ -319,7 +313,6 @@
                 if (result.success) {
                     localStorage.setItem('user', JSON.stringify(result.user));
                     Swal.fire('Success!', 'Account created.', 'success').then(() => {
-                        // Inayos: Lipat sa dashboard.html
                         window.location.href = "dashboard.html";
                     });
                 } else {
@@ -352,7 +345,6 @@
                 body: JSON.stringify({ email, password })
             });
             
-            // Check if response is okay
             if (!response.ok) {
                  const errText = await response.text();
                  throw new Error("Server error: " + errText);
@@ -362,7 +354,6 @@
 
             if (result.success) {
                 localStorage.setItem('user', JSON.stringify(result.user));
-                // Inayos: Lipat sa dashboard.html
                 window.location.href = "dashboard.html";
             } else {
                 throw new Error(result.message);
