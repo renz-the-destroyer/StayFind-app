@@ -5,22 +5,25 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Dito natin babasahin ang mga "Keys" na nilagay mo sa Render Dashboard
-$host = getenv('MYSQLHOST');
-$port = getenv('MYSQLPORT') ?: "3306"; 
-$db_name = getenv('MYSQLDATABASE');
-$username = getenv('MYSQLUSER');
-$password = getenv('MYSQLPASSWORD');
+// Subukan nating kunin ang variables sa dalawang paraan
+$host = $_ENV['MYSQLHOST'] ?? getenv('MYSQLHOST');
+$port = $_ENV['MYSQLPORT'] ?? getenv('MYSQLPORT') ?? "3306";
+$db_name = $_ENV['MYSQLDATABASE'] ?? getenv('MYSQLDATABASE');
+$username = $_ENV['MYSQLUSER'] ?? getenv('MYSQLUSER');
+$password = $_ENV['MYSQLPASSWORD'] ?? getenv('MYSQLPASSWORD');
 
 try {
-    // Connection string gamit ang mga variables sa taas
-    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db_name;charset=utf8mb4", $username, $password);
-    
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db_name;charset=utf8mb4", $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+    ]);
 } catch(PDOException $e) {
-    // Mas maganda kung ganito para makita natin kung bakit ayaw kumonekta habang nagte-test
-    echo json_encode(["success" => false, "message" => "Connection failed: " . $e->getMessage()]);
+    // I-print natin ang error para makita natin kung empty ba ang variables
+    echo json_encode([
+        "success" => false, 
+        "message" => "Database Error: " . $e->getMessage()
+    ]);
     exit;
 }
 ?>
