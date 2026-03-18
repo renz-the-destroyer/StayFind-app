@@ -86,6 +86,7 @@
             flex-direction: column;
             gap: 5px;
             align-items: center;
+            background: #fff;
         }
 
         .role-box i { font-size: 20px; }
@@ -139,7 +140,7 @@
                 <label>Mobile Number</label>
                 <div class="input-wrapper">
                     <i class="fas fa-phone"></i>
-                    <input type="tel" id="contact" placeholder="09123456789" pattern="[0-9]{11}" required>
+                    <input type="tel" id="contact" placeholder="09123456789" pattern="[0-9]{11}" required title="Please enter 11-digit mobile number">
                 </div>
             </div>
 
@@ -170,8 +171,14 @@
         if (!currentUser) {
             window.location.href = "index.html";
         } else {
+            // Pre-fill the name from login/register if available
             document.getElementById('fullName').value = currentUser.name || "";
             document.getElementById('loader').style.display = 'none';
+            
+            // If user already has a role (not pending), redirect them to home
+            if(currentUser.role && currentUser.role !== 'pending') {
+                window.location.href = "home.html";
+            }
         }
     };
 
@@ -179,12 +186,16 @@
         userRole = role;
         document.getElementById('roleTenant').classList.remove('active');
         document.getElementById('roleLandlord').classList.remove('active');
-        document.getElementById('role' + role.charAt(0).toUpperCase() + role.slice(1)).classList.add('active');
+        const activeId = role === 'tenant' ? 'roleTenant' : 'roleLandlord';
+        document.getElementById(activeId).classList.add('active');
     };
 
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!userRole) return Swal.fire('Error', 'Please select a role', 'error');
+        
+        if (!userRole) {
+            return Swal.fire('Wait!', 'Please select if you are a Tenant or Landlord', 'warning');
+        }
 
         const btn = document.getElementById('saveBtn');
         btn.disabled = true;
@@ -204,23 +215,26 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(profileData)
             });
+            
             const result = await response.json();
 
             if (result.success) {
-                // Update local storage with new info
+                // Update local storage with the complete data
                 currentUser.role = userRole;
+                currentUser.name = profileData.name;
                 localStorage.setItem('user', JSON.stringify(currentUser));
 
                 Swal.fire({
                     icon: 'success',
-                    title: 'Profile Updated!',
-                    timer: 1500,
+                    title: 'Profile Completed!',
+                    text: 'Welcome to StayFind, ' + profileData.name + '!',
+                    timer: 2000,
                     showConfirmButton: false
                 }).then(() => {
                     window.location.href = "home.html";
                 });
             } else {
-                throw new Error(result.message);
+                throw new Error(result.message || "Failed to update profile");
             }
         } catch (err) {
             btn.disabled = false;
