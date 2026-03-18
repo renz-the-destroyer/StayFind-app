@@ -6,31 +6,35 @@ header("Content-Type: application/json");
 // Kunin ang data mula sa frontend (JSON)
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Check kung may email na kasama
-if (!isset($data['email']) || empty($data['email'])) {
-    echo json_encode(["success" => false, "message" => "User email missing"]);
+// Check kung may email at role na kasama (ito ang pinaka-importante)
+if (empty($data['email']) || empty($data['role'])) {
+    echo json_encode(["success" => false, "message" => "Required fields missing (email/role)"]);
     exit;
 }
 
-$email = $data['email'];
-$name = $data['name'];
+$email   = $data['email'];
+$name    = $data['name'];
 $address = $data['address'];
 $contact = $data['contact'];
-$role = $data['role'];
+$role    = $data['role'];
 
 try {
-    // Siguraduhin na ang column name sa SQL ay tugma sa database mo
-    // Kung 'full_name' ang nilagay mo sa SQL command kanina, gamitin ang 'full_name' dito.
-    $stmt = $pdo->prepare("UPDATE users SET full_name = ?, address = ?, contact = ?, role = ? WHERE email = ?");
+    // Siguraduhin na 'full_name' ang column name gaya ng nasa table structure natin
+    $sql = "UPDATE users SET full_name = ?, address = ?, contact = ?, role = ? WHERE email = ?";
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([$name, $address, $contact, $role, $email]);
 
-    if ($stmt->rowCount() > 0) {
-        echo json_encode(["success" => true, "message" => "Profile updated"]);
-    } else {
-        // Kung walang nabago (halimbawa: same data or email not found)
-        echo json_encode(["success" => true, "message" => "No changes made or user not found"]);
-    }
+    // Sa UPDATE, kahit 0 ang rowCount (walang binago), basta walang Exception, "Success" pa rin ito.
+    echo json_encode([
+        "success" => true, 
+        "message" => "Profile setup completed successfully!"
+    ]);
+
 } catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
+    // Ibalik ang actual error para madali tayong makapag-debug kung may typo sa column names
+    echo json_encode([
+        "success" => false, 
+        "message" => "Database error: " . $e->getMessage()
+    ]);
 }
 ?>
